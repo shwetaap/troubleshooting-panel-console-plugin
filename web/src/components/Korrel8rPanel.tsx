@@ -18,6 +18,7 @@ import {
 } from '@patternfly/react-core';
 import { CubesIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
 import * as React from 'react';
+import { DatePicker } from '@patternfly/react-date-picker';
 import { TFunction, useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { usePluginAvailable } from '../hooks/usePluginAvailable';
@@ -104,6 +105,40 @@ export default function Korrel8rPanel() {
   const queryInputID = 'query-input';
   const queryTypeOptions = 'query-type-options';
 
+  // Date and Time Picker state
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string>('');
+
+  // Date picker change handler
+  const handleDateChange = (date: Date | null) => {
+    setSelectedDate(date);
+  };
+
+  // Handle time change from the time input field
+  const handleTimeChange = (value: string) => {
+    setSelectedTime(value);
+  };
+
+  // Combine date and time into a Date object or use it however you need
+  const getCombinedDateTime = () => {
+    if (selectedDate && selectedTime) {
+      const combinedDateTime = new Date(selectedDate);
+      const [hours, minutes] = selectedTime.split(':').map(Number);
+      combinedDateTime.setHours(hours, minutes);
+      return combinedDateTime;
+    }
+    return null;
+  };
+
+  const handleSubmit = () => {
+    const dateTime = getCombinedDateTime();
+    if (dateTime) {
+      alert(`Selected Date and Time: ${dateTime.toLocaleString()}`);
+    } else {
+      alert('Please select both date and time');
+    }
+  };
+
   const focusTip = korrel8rQueryFromURL
     ? t('Re-calculate the correlation graph starting from resources on the current console page.')
     : cannotFocus;
@@ -150,6 +185,25 @@ export default function Korrel8rPanel() {
         isIndented
       >
         <Flex direction={{ default: 'column' }}>
+	  <Tooltip content="Select the date">
+            <DatePicker date={selectedDate} onChange={handleDateChange} />
+          </Tooltip>
+      
+          <Tooltip content="Select the time">
+            <TextInput
+              type="time"
+              value={selectedTime}
+              onChange={(_event, value) => handleTimeChange(value)}
+              aria-label="Select time"
+            />
+          </Tooltip>
+
+          {/* Display selected date as TextInput */}
+          <TextInput
+            value={selectedDate ? selectedDate.toLocaleString() : ''}
+            isReadOnly
+            aria-label="Selected Date and Time"
+          />
           <Tooltip content={t('Korrel8 query selecting the starting points for correlation.')}>
             <TextArea
               className="tp-plugin__panel-query-input"
